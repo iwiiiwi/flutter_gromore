@@ -1,26 +1,7 @@
 group 'net.niuxiaoer.flutter_gromore'
 version '1.0-SNAPSHOT'
 
-buildscript {
-    ext.kotlin_version = '1.6.10'
-    repositories {
-        google()
-        mavenCentral()
-        //mintegral sdk依赖   引入mintegral sdk需要添加此maven
-        maven {
-            url "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_support/"
-        }
-        // GroMore SDK
-        maven {
-            url 'https://artifact.bytedance.com/repository/pangle'
-        }
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
+ext.kotlin_version = '1.6.10'
 
 rootProject.allprojects {
     repositories {
@@ -74,6 +55,6 @@ dependencies {
 
 
     // 融合SDK
-    implementation(name: 'open_ad_sdk_6.0.1.4', ext: 'aar')
+    implementation(name: 'open_ad_sdk_6.1.0.4', ext: 'aar')
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
 }
