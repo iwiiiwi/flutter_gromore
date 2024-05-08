@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import com.bytedance.sdk.openadsdk.AdSlot
+import com.bytedance.sdk.openadsdk.CSJAdError
+import com.bytedance.sdk.openadsdk.CSJSplashAd
 import com.bytedance.sdk.openadsdk.TTAdNative
 import com.bytedance.sdk.openadsdk.TTAdSdk
 import com.bytedance.sdk.openadsdk.TTSplashAd
@@ -24,14 +26,14 @@ class FlutterGromoreSplashView(
         binaryMessenger: BinaryMessenger
 ) :
         FlutterGromoreBase(binaryMessenger, "${FlutterGromoreConstants.splashTypeId}/$viewId"),
-        PlatformView, TTAdNative.SplashAdListener, TTSplashAd.AdInteractionListener {
+        PlatformView,  TTAdNative.CSJSplashAdListener,CSJSplashAd.SplashAdListener{
 
     private val TAG: String = this::class.java.simpleName
 
     // 开屏广告容器
     private var container: FrameLayout = FrameLayout(context)
 
-    private var splashAd: TTSplashAd? = null
+    private var splashAd: CSJSplashAd? = null
 
     init {
         initAd()
@@ -41,9 +43,10 @@ class FlutterGromoreSplashView(
         require(creationParams != null)
 
         val adUnitId = creationParams["adUnitId"] as String
+        var timeout = creationParams["timeout"] as? Int ?: 5000
         require(adUnitId.isNotEmpty())
 
-        val adNativeLoader = TTAdSdk.getAdManager().createAdNative(activity)
+        val adNativeLoader:TTAdNative = TTAdSdk.getAdManager().createAdNative(activity)
 
         // 注意开屏广告view：width >=70%屏幕宽；height >=50%屏幕高，否则会影响计费。
         // 开屏广告可支持的尺寸：图片尺寸传入与展示区域大小保持一致，避免素材变形
@@ -68,7 +71,7 @@ class FlutterGromoreSplashView(
                         .build())
                 .build()
 
-        adNativeLoader.loadSplashAd(adSlot, this)
+        adNativeLoader.loadSplashAd(adSlot, this,timeout)
     }
 
     private fun finishSplash() {
@@ -87,57 +90,47 @@ class FlutterGromoreSplashView(
         finishSplash()
     }
 
-    override fun onAdClicked(p0: View?, p1: Int) {
-        Log.d(TAG, "onAdClicked")
-        postMessage("onAdClicked")
+    override fun onSplashLoadSuccess(p0: CSJSplashAd?) {
+        postMessage("onSplashAdLoadSuccess")
     }
 
-    override fun onAdShow(p0: View?, p1: Int) {
-        Log.d(TAG, "onAdShow")
-        postMessage("onAdShow")
-    }
-
-    override fun onAdSkip() {
-        Log.d(TAG, "onAdSkip")
-
-        finishSplash()
-        postMessage("onAdSkip")
-    }
-
-    override fun onAdTimeOver() {
-        Log.d(TAG, "onAdDismiss")
-
-        finishSplash()
-        postMessage("onAdDismiss")
-    }
-
-    override fun onError(p0: Int, p1: String?) {
-        Log.d(TAG, "onSplashAdLoadFail")
-
+    override fun onSplashLoadFail(p0: CSJAdError?) {
         finishSplash()
         postMessage("onSplashAdLoadFail")
     }
 
-    override fun onTimeout() {
-        Log.d(TAG, "onAdLoadTimeout")
-
-        finishSplash()
-        postMessage("onAdLoadTimeout")
-    }
-
-    override fun onSplashAdLoad(ad: TTSplashAd?) {
-        Log.d(TAG, "onSplashAdLoadSuccess")
-        postMessage("onSplashAdLoadSuccess")
+    override fun onSplashRenderSuccess(ad: CSJSplashAd) {
+        Log.d(TAG, "onSplashRenderSuccess")
+        postMessage("onSplashRenderSuccess")
 
         ad?.let {
             splashAd = it
-            it.setSplashInteractionListener(this)
+            it.setSplashAdListener(this)
 
             container.removeAllViews()
             it.splashView?.let {  splashView ->
                 container.addView(splashView)
             }
         }
+    }
+
+    override fun onSplashRenderFail(p0: CSJSplashAd?, p1: CSJAdError?) {
+        finishSplash()
+        postMessage("onSplashRenderFail")
+    }
+
+    override fun onSplashAdShow(p0: CSJSplashAd?) {
+        Log.d(TAG, "onAdShow")
+        postMessage("onAdShow")
+    }
+
+    override fun onSplashAdClick(p0: CSJSplashAd?) {
+        postMessage("onAdClicked")
+    }
+
+    override fun onSplashAdClose(p0: CSJSplashAd?, p1: Int) {
+        finishSplash()
+        postMessage("onAdEnd")
     }
 
 }

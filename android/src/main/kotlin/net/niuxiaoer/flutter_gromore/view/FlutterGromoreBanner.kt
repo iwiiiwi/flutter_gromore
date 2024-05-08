@@ -156,15 +156,17 @@ class FlutterGromoreBanner(
         removeAdView()
     }
 
-    override fun initAd() {}
+    override fun initAd() {
+
+    }
 
     override fun onError(p0: Int, p1: String?) {
         Log.d(TAG, "onLoadError - $p0 - $p1")
         postMessage("onLoadError")
     }
 
-    override fun onNativeExpressAdLoad(ads: MutableList<TTNativeExpressAd>?) {
-        ads?.let {
+    override fun onNativeExpressAdLoad(ads: List<TTNativeExpressAd>) {
+        ads.let {
             val ad = it.first()
 
             bannerAd = ad
